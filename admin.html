@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pepeti Aviator – Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Roboto,sans-serif}
+:root{--bg:#07070f;--box:#111122;--box2:#181830;--accent:#e53935;--green:#00c853;--gold:#ffd700;--purple:#7c3aed;--blue:#1976d2}
+body{background:var(--bg);color:#fff;font-size:13px;min-height:100vh}
+::-webkit-scrollbar{width:5px;background:#111}::-webkit-scrollbar-thumb{background:#2a2a45;border-radius:3px}
+a{color:inherit;text-decoration:none}
+
+/* Sidebar */
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:#0c0c1e;border-right:1px solid #1e1e3a;display:flex;flex-direction:column;z-index:100}
+#sidebar .brand{padding:20px 16px;border-bottom:1px solid #1e1e3a}
+#sidebar .brand h1{font-size:16px;font-weight:800;background:linear-gradient(135deg,#e53935,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#sidebar .brand p{font-size:10px;color:#555;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+#sidebar nav{flex:1;padding:16px 0;overflow-y:auto}
+#sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#666;font-size:12px;font-weight:600;cursor:pointer;border-left:3px solid transparent;transition:all .2s}
+#sidebar nav a:hover,#sidebar nav a.active{color:#fff;background:#1a1a2e;border-left-color:var(--accent)}
+#sidebar nav a span.icon{font-size:16px;width:20px;text-align:center}
+#sidebar .logout-btn{padding:16px;border-top:1px solid #1e1e3a}
+#sidebar .logout-btn button{width:100%;padding:8px;background:#1a1a2e;border:1px solid #2a2a45;color:#888;border-radius:6px;cursor:pointer;font-size:12px}
+#sidebar .logout-btn button:hover{color:#fff}
+
+/* Content */
+#content{margin-left:220px;padding:24px;min-height:100vh}
+#top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+#top-bar h2{font-size:18px;font-weight:800}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.live{background:rgba(0,200,83,.15);color:#00c853;border:1px solid rgba(0,200,83,.3);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--box);border:1px solid #1e1e3a;border-radius:12px;padding:16px}
+.stat-card .sc-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-card .sc-value{font-size:22px;font-weight:800}
+.stat-card .sc-sub{font-size:10px;color:#444;margin-top:4px}
+.stat-card.green .sc-value{color:var(--green)}
+.stat-card.gold .sc-value{color:var(--gold)}
+.stat-card.red .sc-value{color:var(--accent)}
+.stat-card.blue .sc-value{color:#42a5f5}
+.stat-card.purple .sc-value{color:#ab47bc}
+
+/* Tables */
+.table-wrap{background:var(--box);border:1px solid #1e1e3a;border-radius:12px;overflow:hidden;margin-bottom:20px}
+.table-header{padding:12px 16px;border-bottom:1px solid #1e1e3a;display:flex;align-items:center;justify-content:space-between}
+.table-header h3{font-size:13px;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{padding:8px 12px;font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;text-align:left;border-bottom:1px solid #1a1a2e}
+td{padding:8px 12px;font-size:12px;border-bottom:1px solid #0f0f1e;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#13132a}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn:hover{opacity:.85;transform:translateY(-1px)}
+.btn-green{background:rgba(0,200,83,.2);color:#00c853;border:1px solid rgba(0,200,83,.3)}
+.btn-red{background:rgba(229,57,53,.15);color:#ef5350;border:1px solid rgba(229,57,53,.3)}
+.btn-blue{background:rgba(33,150,243,.15);color:#42a5f5;border:1px solid rgba(33,150,243,.3)}
+.btn-gold{background:rgba(255,215,0,.1);color:var(--gold);border:1px solid rgba(255,215,0,.2)}
+.btn-purple{background:rgba(124,58,237,.15);color:#ab47bc;border:1px solid rgba(124,58,237,.3)}
+
+/* Status badges */
+.status{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase}
+.status.pending{background:rgba(255,152,0,.15);color:#ffa726;border:1px solid rgba(255,152,0,.3)}
+.status.approved{background:rgba(0,200,83,.15);color:#00c853;border:1px solid rgba(0,200,83,.3)}
+.status.rejected{background:rgba(229,57,53,.1);color:#ef5350;border:1px solid rgba(229,57,53,.2)}
+
+/* Forms */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.form-row input,.form-row select{background:#0f0f22;border:1px solid #2a2a45;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;outline:none}
+.form-row input:focus,.form-row select:focus{border-color:var(--purple)}
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-bar select{background:#111;border:1px solid #2a2a45;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;outline:none}
+
+/* Login screen */
+#login-screen{position:fixed;inset:0;background:#07070f;display:flex;align-items:center;justify-content:center;z-index:999}
+.login-box{background:#111122;border:1px solid #2a2a45;border-radius:16px;padding:32px;width:320px}
+.login-box h2{margin-bottom:4px;font-size:18px;font-weight:800}
+.login-box p{color:#555;font-size:12px;margin-bottom:24px}
+.login-box .fg{margin-bottom:14px}
+.login-box .fg label{display:block;font-size:11px;color:#666;margin-bottom:5px}
+.login-box .fg input{width:100%;background:#0f0f22;border:1px solid #2a2a45;color:#fff;border-radius:8px;padding:10px;font-size:13px;outline:none}
+.login-box .login-btn{width:100%;padding:12px;background:linear-gradient(135deg,#e53935,#c62828);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.login-box .err{color:#ef5350;font-size:12px;text-align:center;margin-top:10px;display:none}
+
+/* Section pages */
+.page{display:none}.page.active{display:block}
+
+/* Pill nav */
+.pill-nav{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.pill-nav button{background:#111;border:1px solid #2a2a45;color:#666;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;cursor:pointer}
+.pill-nav button.active{background:#1e1e38;border-color:#7c3aed;color:#fff}
+
+/* Inline edit */
+.balance-input{background:#0f0f22;border:1px solid #2a2a45;color:#fff;border-radius:6px;padding:4px 8px;width:90px;font-size:12px;outline:none}
+
+@media(max-width:700px){#sidebar{display:none}#content{margin-left:0}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>🛡 Admin Panel</h2>
+    <p>Pepeti Aviator Management</p>
+    <div class="fg"><label>Phone</label><input type="tel" id="adm-phone" placeholder="0700000000" value="0700000000"></div>
+    <div class="fg"><label>Password</label><input type="password" id="adm-pass" placeholder="••••••" value="admin123"></div>
+    <button class="login-btn" onclick="adminLogin()">Login</button>
+    <div class="err" id="adm-err"></div>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="brand">
+    <h1>PEPETI AVIATOR</h1>
+    <p>Admin Dashboard</p>
+  </div>
+  <nav>
+    <a class="active" onclick="goPage('dashboard',this)"><span class="icon">📊</span>Dashboard</a>
+    <a onclick="goPage('users',this)"><span class="icon">👥</span>Users</a>
+    <a onclick="goPage('deposits',this)"><span class="icon">💰</span>Deposits</a>
+    <a onclick="goPage('withdrawals',this)"><span class="icon">📤</span>Withdrawals</a>
+    <a onclick="goPage('game-history',this)"><span class="icon">🎮</span>Game History</a>
+    <a href="/" target="_blank"><span class="icon">🚀</span>View Game</a>
+  </nav>
+  <div class="logout-btn"><button onclick="adminLogout()">⏻ Logout</button></div>
+</div>
+
+<!-- Content -->
+<div id="content">
+
+  <!-- Dashboard -->
+  <div class="page active" id="page-dashboard">
+    <div id="top-bar">
+      <h2>Dashboard</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="badge live" id="game-status-badge">● LIVE</span>
+        <span style="color:#555;font-size:12px" id="current-mult"></span>
+        <button class="btn btn-blue" onclick="loadStats()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card blue"><div class="sc-label">Total Users</div><div class="sc-value" id="s-users">—</div></div>
+      <div class="stat-card green"><div class="sc-label">Total Deposits</div><div class="sc-value" id="s-deposits">—</div><div class="sc-sub">KSH</div></div>
+      <div class="stat-card red"><div class="sc-label">Total Withdrawals</div><div class="sc-value" id="s-wd">—</div><div class="sc-sub">KSH</div></div>
+      <div class="stat-card gold"><div class="sc-label">Pending Deposits</div><div class="sc-value" id="s-pdep">—</div></div>
+      <div class="stat-card purple"><div class="sc-label">Pending Withdrawals</div><div class="sc-value" id="s-pwd">—</div></div>
+      <div class="stat-card"><div class="sc-label">Total Rounds</div><div class="sc-value" id="s-rounds">—</div></div>
+      <div class="stat-card green"><div class="sc-label">Online Players</div><div class="sc-value" id="s-online">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex-wrap:wrap">
+      <div class="table-wrap">
+        <div class="table-header"><h3>⏳ Pending Deposits</h3><button class="btn btn-gold" onclick="goPage('deposits',document.querySelector('[onclick*=deposits]'))">View All</button></div>
+        <div id="dash-deposits" style="padding:8px"></div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header"><h3>⏳ Pending Withdrawals</h3><button class="btn btn-blue" onclick="goPage('withdrawals',document.querySelector('[onclick*=withdrawals]'))">View All</button></div>
+        <div id="dash-withdrawals" style="padding:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users -->
+  <div class="page" id="page-users">
+    <div id="top-bar"><h2>Users</h2><button class="btn btn-blue" onclick="loadUsers()">↻ Refresh</button></div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>All Players</h3>
+        <input placeholder="Search..." id="user-search" style="background:#0f0f22;border:1px solid #2a2a45;color:#fff;border-radius:6px;padding:5px 10px;font-size:12px;outline:none" oninput="filterUsers(this.value)">
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>Username</th><th>Phone</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="users-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Deposits -->
+  <div class="page" id="page-deposits">
+    <div id="top-bar"><h2>Deposits</h2><button class="btn btn-blue" onclick="loadTransactions('deposit')">↻ Refresh</button></div>
+    <div class="filter-bar">
+      <select id="dep-status-filter" onchange="loadTransactions('deposit')">
+        <option value="all">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>User</th><th>Phone</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody id="deposits-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Withdrawals -->
+  <div class="page" id="page-withdrawals">
+    <div id="top-bar"><h2>Withdrawals</h2><button class="btn btn-blue" onclick="loadTransactions('withdraw')">↻ Refresh</button></div>
+    <div class="filter-bar">
+      <select id="wd-status-filter" onchange="loadTransactions('withdraw')">
+        <option value="all">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>User</th><th>Send To</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody id="withdrawals-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Game History -->
+  <div class="page" id="page-game-history">
+    <div id="top-bar"><h2>Game History</h2><button class="btn btn-blue" onclick="loadGameHistory()">↻ Refresh</button></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Crash Point</th><th>Server Seed</th><th>Started At</th></tr></thead>
+        <tbody id="game-history-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let adminToken = localStorage.getItem('pepeti_admin_token');
+let allUsersData = [];
+
+async function adminLogin(){
+  const phone = document.getElementById('adm-phone').value;
+  const pass = document.getElementById('adm-pass').value;
+  const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone, password:pass})});
+  const d = await r.json();
+  if(d.status && d.is_admin){
+    adminToken = d.token;
+    localStorage.setItem('pepeti_admin_token', adminToken);
+    document.getElementById('login-screen').style.display = 'none';
+    init();
+  } else {
+    document.getElementById('adm-err').textContent = d.is_admin===false ? 'Not an admin account' : d.message;
+    document.getElementById('adm-err').style.display = 'block';
+  }
+}
+
+function adminLogout(){
+  localStorage.removeItem('pepeti_admin_token');
+  location.reload();
+}
+
+function headers(){
+  return {'Content-Type':'application/json','Authorization':'Bearer '+adminToken};
+}
+
+async function init(){
+  loadStats();
+  loadDashPending();
+  setInterval(loadStats, 15000);
+}
+
+async function loadStats(){
+  const r = await fetch('/api/admin/stats',{headers:headers()});
+  const d = await r.json();
+  document.getElementById('s-users').textContent = d.total_users;
+  document.getElementById('s-deposits').textContent = fmt(d.total_deposits);
+  document.getElementById('s-wd').textContent = fmt(d.total_withdrawals);
+  document.getElementById('s-pdep').textContent = d.pending_deposits;
+  document.getElementById('s-pwd').textContent = d.pending_withdrawals;
+  document.getElementById('s-rounds').textContent = d.total_rounds;
+  document.getElementById('s-online').textContent = d.online_users;
+  document.getElementById('game-status-badge').textContent = '● ' + d.game_state;
+  document.getElementById('current-mult').textContent = d.game_state === 'PLAYING' ? d.current_multiplier.toFixed(2)+'x' : '';
+}
+
+async function loadDashPending(){
+  const r = await fetch('/api/admin/transactions?type=deposit&status=pending',{headers:headers()});
+  const d = await r.json();
+  const el = document.getElementById('dash-deposits');
+  if(!d.data?.length){ el.innerHTML = '<p style="color:#555;font-size:11px;text-align:center;padding:12px">No pending deposits</p>'; return; }
+  el.innerHTML = d.data.slice(0,5).map(t => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid #0f0f1e;font-size:12px">
+      <div><strong>${t.username}</strong> · <span style="color:#555">${t.method?.toUpperCase()}</span></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="color:var(--gold);font-weight:700">KSH ${fmt(t.amount)}</span>
+        <button class="btn btn-green" onclick="approveT(${t.id},'deposit',this)">✓</button>
+        <button class="btn btn-red" onclick="rejectT(${t.id},this)">✕</button>
+      </div>
+    </div>`).join('');
+
+  const r2 = await fetch('/api/admin/transactions?type=withdraw&status=pending',{headers:headers()});
+  const d2 = await r2.json();
+  const el2 = document.getElementById('dash-withdrawals');
+  if(!d2.data?.length){ el2.innerHTML = '<p style="color:#555;font-size:11px;text-align:center;padding:12px">No pending withdrawals</p>'; return; }
+  el2.innerHTML = d2.data.slice(0,5).map(t => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid #0f0f1e;font-size:12px">
+      <div><strong>${t.username}</strong> · <span style="color:#555">${t.reference}</span></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="color:#ef5350;font-weight:700">KSH ${fmt(t.amount)}</span>
+        <button class="btn btn-green" onclick="approveT(${t.id},'withdraw',this)">✓ Pay</button>
+        <button class="btn btn-red" onclick="rejectT(${t.id},this)">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+async function loadUsers(){
+  const r = await fetch('/api/admin/users',{headers:headers()});
+  const d = await r.json();
+  allUsersData = d.data || [];
+  renderUsers(allUsersData);
+}
+
+function renderUsers(users){
+  document.getElementById('users-body').innerHTML = users.map(u => `
+    <tr>
+      <td style="color:#555">${u.id}</td>
+      <td><strong>${u.username}</strong></td>
+      <td style="color:#888">${u.phone}</td>
+      <td><span style="color:var(--gold);font-weight:700">KSH ${fmt(u.balance)}</span>
+        <input class="balance-input" id="bal-inp-${u.id}" type="number" placeholder="±amount" style="margin-left:6px">
+        <button class="btn btn-gold" onclick="adjustBal(${u.id})">Adjust</button>
+      </td>
+      <td><span class="status ${u.is_active?'approved':'rejected'}">${u.is_active?'Active':'Suspended'}</span></td>
+      <td><button class="btn ${u.is_active?'btn-red':'btn-green'}" onclick="toggleUser(${u.id},this)">${u.is_active?'Suspend':'Activate'}</button></td>
+    </tr>`).join('');
+}
+
+function filterUsers(q){
+  const f = allUsersData.filter(u => u.username.toLowerCase().includes(q.toLowerCase()) || u.phone.includes(q));
+  renderUsers(f);
+}
+
+async function adjustBal(uid){
+  const inp = document.getElementById('bal-inp-'+uid);
+  const amount = parseFloat(inp.value);
+  if(isNaN(amount)){ alert('Enter a valid amount'); return; }
+  const r = await fetch(`/api/admin/user/${uid}/balance`,{method:'POST',headers:headers(),body:JSON.stringify({amount})});
+  const d = await r.json();
+  if(d.status){ inp.value=''; loadUsers(); alert(`Balance updated. New: KSH ${fmt(d.balance)}`); }
+}
+
+async function toggleUser(uid, btn){
+  const r = await fetch(`/api/admin/user/${uid}/toggle`,{method:'POST',headers:headers()});
+  const d = await r.json();
+  if(d.status) loadUsers();
+}
+
+async function loadTransactions(type){
+  const statusFilter = document.getElementById(type==='deposit'?'dep-status-filter':'wd-status-filter')?.value || 'all';
+  const r = await fetch(`/api/admin/transactions?type=${type}&status=${statusFilter}`,{headers:headers()});
+  const d = await r.json();
+  const bodyId = type==='deposit' ? 'deposits-body' : 'withdrawals-body';
+  const tbody = document.getElementById(bodyId);
+  if(!d.data?.length){ tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#555;padding:20px">No transactions</td></tr>'; return; }
+  tbody.innerHTML = d.data.map(t => {
+    const actions = t.status === 'pending' ? `
+      <button class="btn btn-green" onclick="approveT(${t.id},'${type}',this)">✓ Approve</button>
+      <button class="btn btn-red" onclick="rejectT(${t.id},this)">✕ Reject</button>` : '—';
+    if(type==='deposit') return `<tr>
+      <td style="color:#555">${t.id}</td>
+      <td><strong>${t.username}</strong></td>
+      <td style="color:#888">${t.phone}</td>
+      <td style="color:var(--gold);font-weight:700">KSH ${fmt(t.amount)}</td>
+      <td><span style="text-transform:uppercase;font-size:11px">${t.method||'—'}</span></td>
+      <td style="font-family:monospace;color:#aaa">${t.reference||'—'}</td>
+      <td><span class="status ${t.status}">${t.status}</span></td>
+      <td style="color:#555;font-size:11px">${fmtDate(t.created_at)}</td>
+      <td>${actions}</td></tr>`;
+    else return `<tr>
+      <td style="color:#555">${t.id}</td>
+      <td><strong>${t.username}</strong></td>
+      <td style="color:#888">${t.reference||'—'}</td>
+      <td style="color:#ef5350;font-weight:700">KSH ${fmt(t.amount)}</td>
+      <td>${t.method||'—'}</td>
+      <td><span class="status ${t.status}">${t.status}</span></td>
+      <td style="color:#555;font-size:11px">${fmtDate(t.created_at)}</td>
+      <td>${actions}</td></tr>`;
+  }).join('');
+}
+
+async function approveT(id, type, btn){
+  btn.disabled = true; btn.textContent = '...';
+  const r = await fetch(`/api/admin/transaction/${id}/approve`,{method:'POST',headers:headers()});
+  const d = await r.json();
+  if(d.status){ loadDashPending(); loadTransactions(type); loadStats(); }
+  else alert(d.message);
+}
+
+async function rejectT(id, btn){
+  if(!confirm('Reject this transaction?')) return;
+  btn.disabled = true;
+  const r = await fetch(`/api/admin/transaction/${id}/reject`,{method:'POST',headers:headers()});
+  const d = await r.json();
+  if(d.status){ loadDashPending(); loadStats(); }
+}
+
+async function loadGameHistory(){
+  const r = await fetch('/api/admin/game-history',{headers:headers()});
+  const d = await r.json();
+  document.getElementById('game-history-body').innerHTML = (d.data||[]).map(g => {
+    const cls = g.crash_point < 2 ? '#ef5350' : g.crash_point < 5 ? '#ffa726' : g.crash_point < 10 ? '#00c853' : 'gold';
+    return `<tr>
+      <td style="color:#555">${g.id}</td>
+      <td><strong style="color:${cls};font-size:14px">${parseFloat(g.crash_point).toFixed(2)}x</strong></td>
+      <td style="font-family:monospace;font-size:10px;color:#444;max-width:180px;overflow:hidden;text-overflow:ellipsis">${g.server_seed}</td>
+      <td style="color:#555;font-size:11px">${fmtDate(g.started_at)}</td></tr>`;
+  }).join('');
+}
+
+function goPage(page, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('#sidebar nav a').forEach(a=>a.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(page==='users') loadUsers();
+  if(page==='deposits') loadTransactions('deposit');
+  if(page==='withdrawals') loadTransactions('withdraw');
+  if(page==='game-history') loadGameHistory();
+  if(page==='dashboard') loadDashPending();
+}
+
+function fmt(n){ return parseFloat(n||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(s){ try{ return new Date(s).toLocaleString('en-KE'); }catch{return s||'—'; } }
+
+// Init
+if(adminToken){
+  document.getElementById('login-screen').style.display = 'none';
+  init();
+}
+</script>
+</body>
+</html>
