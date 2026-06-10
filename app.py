@@ -1,3 +1,7 @@
+# IMPORTANT: Monkey patch MUST be first
+import eventlet
+eventlet.monkey_patch()
+
 import os
 import sys
 import math
@@ -9,17 +13,27 @@ import sqlite3
 from datetime import datetime, timedelta
 from functools import wraps
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory, g
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 
 # ─── App Setup ───────────────────────────────────────────────────────────────
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'pepeti-aviator-secret-2024-ksh')
 app.config['DATABASE'] = os.environ.get('DATABASE_URL', 'pepeti.db')
 
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', logger=False, engineio_logger=False)
+# Initialize SocketIO with proper settings for Render
+socketio = SocketIO(app, 
+                   cors_allowed_origins="*", 
+                   async_mode='eventlet',
+                   logger=False, 
+                   engineio_logger=False,
+                   ping_timeout=60,
+                   ping_interval=25)
+
+# ... rest of your existing code remains the same
+
 
 # ─── Database ─────────────────────────────────────────────────────────────────
 def get_db():
